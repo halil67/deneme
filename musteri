@@ -1,1 +1,7 @@
-class musteri:
+class Musteri:
+def __init__(self,id,adi,yasi):
+self.id=id
+self.adi=adi
+self.yasi=yasi
+
+  
