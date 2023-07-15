@@ -25,14 +25,19 @@ class Satis:
             
 class Urun:
     urunler=[]
-    def __init__(self,kategori_kodu,urun_kodu,urun_adi,urun_fiyati,urun_puan,toplam_satis=0):
-        self.kategori_kodu=kategori_kodu
-        self.urun_kodu=urun_kodu
-        self.urun_adi=urun_adi
-        self.urun_fiyati=urun_fiyati
-        self.urun_puan=urun_puan
-        self.toplam_satis=toplam_satis
-
+    def __init__(self,ktg_id,urun_id,adi,fiyat,puan):
+        self.ktg_id=ktg_id
+        self.urun_id=urun_id
+        self.adi=adi
+        self.fiyat=fiyat
+        self.puan=puan
+        
+class Kategori:
+    kategoriler=[]
+    def __init__(self,id,adi,puan):
+        self.id=id
+        self.adi=adi
+        self.puan=puan        
 class Musteri:
     musteriler=[]
     def __init__(self,musteri_kodu,musteri_Adi,musteri_cinsiyet,musteri_yas,musteri_Puan,musteri_islem_sayisi=0,musteri_alis=0):
@@ -43,20 +48,158 @@ class Musteri:
         self.musteri_Puan=musteri_Puan
         self.musteri_islem_sayisi=musteri_islem_sayisi
         self.musteri_alis=musteri_alis
-
-class listeler:
-    def firma_oku(self,dosya_adi):
+import os
+import random
+class Firma_İslemleri:
+    def kod_olustur(self):
+        return random.randint(10000,99999)
+    def firma_kaydet(self):
+        strg=[]
+        dosya_adi="firmalar.csv"
+        if Firma.firmalar:
+            for frm in Firma.firmalar:
+                strg.append(f"{frm.id};{frm.firmaAdi};{frm.puan}\n")
+            with open(dosya_adi,"w",encoding="utf-8") as fl:
+                fl.writelines(strg)
+                
+    def firma_ekle(self):
+        if not Firma.firmalar:self.firma_oku()
+        frm_kod=self.kod_olustur()
+        frm_adi=input("Firma Adi")
+        frm_rnd=random.randint(1,100)
+        firma=Firma(frm_kod,frm_adi,frm_rnd)
+        Firma.firmalar.append(firma)
+        self.firma_kaydet("firmalar.csv")
+        
+    def firma_sil(self,frm_id):
+        if not Firma.firmalar:self.firma_oku("firmalar.csv")
+        if Firma.firmalar:
+            for frm in Firma.firmalar:
+                if frm_id==frm.id:
+                    Firma.firmalar.remove(frm)
+                    self.firma_kaydet()
+    def firma_listele(self):
+        if not Firma.firmalar:self.firma_oku()
+        print(f"Firma kodu     Firma Adı Ağırlık")
+        if Firma.firmalar:
+            for frm in Firma.firmalar:
+                print (f"{frm.id}- {frm.firmaAdi} {frm.puan}\n")
+    def firma_oku(self):
+        dosya_adi="firmalar.csv"
         Firma.firmalar.clear
-        with open(dosya_adi,"r",encoding="utf-8") as fl:
-            for satır in fl:
-                satır=satır.strip()
-                id,adi,puan=satır.split(";")
-                #satis_sayisi,toplam_satis=self.satis_hesapla(int(id))
-                firma=Firma(int(id),adi,int(puan))
-                Firma.firmalar.append(firma)
-        veri=[[i.id,i.firmaAdi,i.puan] for i in Firma.firmalar]
-        sutunlar=["FirmaKodu","FirmaAdi","puan"]
-        self.dfFirma=pd.DataFrame(veri,columns=sutunlar)
+        if os.path.exists(dosya_adi):
+            with open(dosya_adi,"r",encoding="utf-8") as fl:
+                for satır in fl:
+                    satır=satır.strip()
+                    id,adi,puan=satır.split(";")
+                    #satis_sayisi,toplam_satis=self.satis_hesapla(int(id))
+                    firma=Firma(int(id),adi,int(puan))
+                    Firma.firmalar.append(firma)
+            veri=[[i.id,i.firmaAdi,i.puan] for i in Firma.firmalar]
+            sutunlar=["FirmaKodu","FirmaAdi","puan"]
+            self.dfFirma=pd.DataFrame(veri,columns=sutunlar)
+class Karegori_islemleri:
+    def kod_olustur(self):
+        return random.randint(10000,99999)
+    def Kategori_kaydet(self):
+        strg=[]
+        dosya_adi="kategori.csv"
+        if Kategori.kategoriler:
+            for ktg in Kategori.kategoriler:
+                strg.append(f"{ktg.id};{ktg.firmaAdi};{ktg.puan}\n")
+            with open(dosya_adi,"w",encoding="utf-8") as fl:
+                fl.writelines(strg)
+                
+    def kategori_ekle(self):
+        if not Kategori.kategoriler:self.kategori_oku()
+        ktg_kod=self.kod_olustur()
+        ktg_adi=input("Firma Adi")
+        ktg_rnd=random.randint(1,100)
+        kategori=Firma(ktg_kod,ktg_adi,ktg_rnd)
+        Kategori.kategoriler.append(kategori)
+        self.firma_kaydet()
+        
+    def kategori_sil(self,ktg_id):
+        if not Kategori.kategoriler:self.kategori_oku()
+        if Kategori.kategoriler:
+            for ktg in Kategori.kategoriler:
+                if ktg_id==ktg.id:
+                    Kategori.kategoriler.remove(ktg)
+                    self.kategori_kaydet()
+    def kategori_listele(self):
+        if not Kategori.kategoriler:self.kategri_oku()
+        print(f"Kategori kodu   Kategori Adı Ağırlık")
+        if Kategori.kategoriler:
+            for ktg in Kategori.kategoriler:
+                print (f"  {ktg.id} -    {ktg.adi}   {ktg.puan}\n")
+    def kategori_oku(self):
+        dosya_adi="kategori.csv"
+        Kategori.kategoriler.clear
+        if os.path.exists(dosya_adi):
+            with open(dosya_adi,"r",encoding="utf-8") as fl:
+                for satır in fl:
+                    satır=satır.strip()
+                    id,adi,puan=satır.split(";")
+                    #satis_sayisi,toplam_satis=self.satis_hesapla(int(id))
+                    kategori=Kategori(int(id),adi,int(puan))
+                    Kategori.kategoriler.append(kategori)
+            veri=[[i.id,i.adi,i.puan] for i in Kategori.kategoriler]
+            sutunlar=["KtgKodu","KtgAdi","puan"]
+            self.dfKategori=pd.DataFrame(veri,columns=sutunlar)
+class Urun_islemleri:
+    def kod_olustur(self):
+        return random.randint(10000,99999)
+    def urun_kaydet(self):
+        strg=[]
+        dosya_adi="urun.csv"
+        if Urun.urunler:
+            for urn in Urun.urunler:
+                strg.append(f"{urn.ktg_id};{urn.urun_id};{urn.Adi};{urn.fiyat};{urn.puan}\n")
+            with open(dosya_adi,"w",encoding="utf-8") as fl:
+                fl.writelines(strg)
+                
+    def Urun_ekle(self):
+        if not Kategori.kategoriler:self.kategori_oku()
+        urun_id=self.kod_olustur()
+        ktg_id=input("Kategori Kodu:")
+        adi=input("Ürün Adi")
+        fiyat=input("Ürün Fiyatı Giriniz")
+        urn_rnd=random.randint(1,100)
+        urun=Firma(ktg_id,urun_id,adi,fiyat,urn_rnd)
+        Urun.urunler.append(urun)
+        self.urun_kaydet()
+        
+    def urun_sil(self,ktg_id,urn_id):
+        if not Urun.urunler:self.urun_oku()
+        if Urun.urunler:
+            for urn in Urun.urunler:
+                if ktg_id==urn.ktg_id and urn.urun_id==urn_id:
+                    Urun.urunler.remove(urn)
+                    self.urun_kaydet()
+    def urun_listele(self):
+        if not Urun.urunler:self.urun_oku()
+        print(f"Kategori kodu Urun Kodu  Urun Adı Fiyatı Ağırlığı")
+        if Urun.urunler:
+            for urn in Urun.urunler:
+                print (f"  {urn.ktg_id}-{urn.urn_id}   {urn.adi}  {urn.fiyat}  {urn.puan}\n")
+    
+    def urun_oku(self):
+        dosya_adi="urun.csv"
+        Urun.urunler.clear
+        if os.path.exists(dosya_adi):
+            with open(dosya_adi,"r",encoding="utf-8") as fl:
+                for satır in fl:
+                    satır=satır.strip()
+                    k_id,u_id,adi,fiyat,puan=satır.split(";")
+                    #satis_sayisi,toplam_satis=self.satis_hesapla(int(id))
+                    urun=Urun(k_id,u_id,adi,fiyat,puan)
+                    Urun.urunler.append(urun)
+                    
+            veri=[[i.ktg_id,i.urun_id,i.adi,i.fiyat,i.puan] for i in Urun.urunler]
+            sutunlar=["KtgKodu","UrunKodu","urunAdi","Fiyat","puan"]
+            self.dfUrun=pd.DataFrame(veri,columns=sutunlar)
+class listeler:
+    
         
     def musteri_oku(self,dosya):
         Musteri.musteriler.clear
@@ -221,8 +364,48 @@ class listeler:
         self.__satis_kontrol()
         print(self.dfSatis)
         
-lst=listeler()
-lst.firma_grafik_bar()
-#lst.musteri_listele()
-#lst.urun_listele()
-#lst.satis_listele()
+def menu():
+    while True:
+        print(f"***************MENU******************************")
+        cvp=input("1-Firma işlemleri\n2-Kategori İşlemleri\n3-Ürün İşlemleri\n4-Müşteri İşlemleri\n5-Çıkış\nSeçiminizi Yapınız:")
+        if cvp=="1":
+            firma_menu()
+        elif cvp=="2":
+            kategori_menu()
+        elif cvp=="3":
+            urun_menu()
+        elif cvp=="4":
+            musteri_menu()
+        elif cvp=="5":
+            break
+def firma_menu():
+    while True:
+        print(f"******************Firma İşlemleri*******************")
+        print(f"* 1- Firma Ekle___________________________________1 *")
+        print(f"* 2- Firma Sil____________________________________2 *")
+        print(f"* 3- Firma Satış Rapor____________________________3 *")
+        print(f"* 4- Çıkış________________________________________4 *")
+        print(f"*****************************************************")
+        cvp=input("Seçiminiz:")
+        frm=Firma_İslemleri()
+        if cvp=="1":
+            frm.firma_ekle()
+        elif cvp=="2":
+            frm.firma_sil()
+        elif cvp=="3":
+            frm.firma_listele()
+        elif cvp=="4":
+            break
+def kategori_menu():
+    pass
+def urun_menu():
+    pass
+def musteri_menu():
+    pass
+if __name__=="__main__":
+    menu()
+    #lst=listeler()
+    #lst.firma_grafik_bar()
+    #lst.musteri_listele()
+    #lst.urun_listele()
+    #lst.satis_listele()
