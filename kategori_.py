@@ -89,3 +89,6 @@ class Karegori_islemleri:
                     self.auto_kategori()
                 elif secim=="5":
                     break
+
+m=Karegori_islemleri()
+m.kategori_menu()     

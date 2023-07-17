@@ -2,17 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import firma
 import kategori
-
-
-        
-
-
-
-
 import os
 import random
-
-
 
 class listeler:
     
