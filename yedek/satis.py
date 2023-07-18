@@ -1,5 +1,9 @@
 import os
 import random
+import firma
+import kategori
+import urun
+import uuid
 import datetime as dt
 class Satis:
     satislar=[]
@@ -38,13 +42,12 @@ class ShoppingCart:
     def print_items(self):
         for item in self.items:
             print(item[0]["adi"], "-", item[0]["fiyat"])
-    
     def save_to_file(self):
         
-        filename = "shopDetail.txt"  # Dosya adı
-        with open(filename, "a",encoding="utf-8") as file:
+        filename = f"{self.id}.txt"  # Dosya adı
+        with open(filename, "w") as file:
             for item in self.items:
-                file.write(f"{self.id};{item[0]['k_id']};{item[0]['u_id']};{item[0]['adi']};{item[0]['fiyat']}\n")
+                file.write(f"{item[0]['k_id']};{item[0]['u_id']};{item[0]['adi']};{item[0]['fiyat']}\n")
 class Random_satis:
     urunler=[]
     def urun_oku(self):
@@ -87,7 +90,6 @@ class Random_satis:
                     m_id,m_adi,m_soyadi,m_cns,m_yas,puan,tarih=satir.split(";")
                     self.musteriler.append({"m_id":m_id,"m_adi":m_adi,"m_soyadi":m_soyadi,"m_cns":m_cns,"m_yas":m_yas ,"puan":puan,"k_tarih":tarih})
         self.mus_agirlik=[int(p["puan"]) for p in self.musteriler]
-    
     def satis_yap(self):
         if not self.firmalar:self.firma_oku()
         if not self.kategoriler:self.kategori_oku()
@@ -102,24 +104,23 @@ class Random_satis:
             r_kategori_id=random.choices(self.kategoriler,weights=self.kat_agirlik)[0]["k_id"]
             s_urnler=[u for u in self.urunler if u["k_id"]==r_kategori_id]
             s_urun_agirlik=[int(p["puan"]) for p in s_urnler]
-            selected_product=random.choices(s_urnler,weights=s_urun_agirlik)
+            s_urun=random.choices(s_urnler,weights=s_urun_agirlik)
             # Alışveriş sepeti oluşturma
-            if not selected_product in cart.items:
-                cart.add_item(selected_product)
-            #print(f"{selected_product[0]['adi']} sepete eklendi.")
+            selected_product = s_urun
+            cart.add_item(selected_product)
+            print(f"{selected_product[0]['adi']} sepete eklendi.")
         # Sepetin içeriğini ve toplam fiyatı yazdırın
-        #print("\nSepetin İçeriği:")
-        #cart.print_items()
+        print("\nSepetin İçeriği:")
+        cart.print_items()
         cart.save_to_file()
         top_fiyat=cart.get_total_price()
-        urn_say=len(cart.items)
-        tarih=dt.datetime.now().date()
+        tarih=dt.datetime.now().date
         with open("satis.csv","a",encoding="utf-8") as fl:
-            strg=f"{r_firma_id};{r_musteri_id};{cart.id};{urn_say};{top_fiyat};{tarih}\n"
-            fl.write(strg)
+            strg=f"{r_firma_id};{r_musteri_id};{cart.id};{tarih}"
+        
 
+class Satis_islemleri:
+    pass
 s=Random_satis()
-n=1000
-for i in range(1,n):
-    print(round(i/n*100,2))
+for i in range(0,10000):
     s.satis_yap()
