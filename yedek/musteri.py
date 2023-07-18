@@ -110,5 +110,6 @@ class Musteri_islemleri:
                 self.auto_musteri()
             elif secim=="5":
                 break
-            
-            
+
+m=Musteri_islemleri()
+m.musteri_menu() 
