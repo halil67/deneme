@@ -41,13 +41,15 @@ class ShoppingCart:
     
     def save_to_file(self):
         
-        filename = "shopDetail.txt"  # Dosya adı
+        filename = "shopDetail.csv"  # Dosya adı
         with open(filename, "a",encoding="utf-8") as file:
             for item in self.items:
                 file.write(f"{self.id};{item[0]['k_id']};{item[0]['u_id']};{item[0]['adi']};{item[0]['fiyat']}\n")
 class Random_satis:
     urunler=[]
+    
     def urun_oku(self):
+        self.urunler.clear
         with open("urun.csv","r",encoding="utf-8") as fl:
             for satir in fl:
                 satir=satir.strip()
@@ -58,6 +60,8 @@ class Random_satis:
     firmalar=[]
     firma_agirlik=[]
     def firma_oku(self):
+        self.firmalar.clear
+        self.firma_agirlik.clear
         with open("firmalar.csv","r",encoding="utf-8") as fl:
             for satir in fl:
                 satir=satir.strip()
@@ -69,6 +73,8 @@ class Random_satis:
     kategoriler=[]
     kat_agirlik=[]
     def kategori_oku(self):
+        self.kategoriler.clear
+        self.kat_agirlik.clear
         with open("kategori.csv","r",encoding="utf-8") as fl:
             for satir in fl:
                 satir=satir.strip()
@@ -80,6 +86,8 @@ class Random_satis:
     musteriler=[]
     mus_agirlik=[]
     def musteri_oku(self):
+        self.musteriler.clear
+        self.mus_agirlik.clear
         with open("musteri.csv","r",encoding="utf-8") as fl:
             for satir in fl:
                 satir=satir.strip()
@@ -117,9 +125,9 @@ class Random_satis:
         with open("satis.csv","a",encoding="utf-8") as fl:
             strg=f"{r_firma_id};{r_musteri_id};{cart.id};{urn_say};{top_fiyat};{tarih}\n"
             fl.write(strg)
-
+'''
 s=Random_satis()
 n=1000
 for i in range(1,n):
     print(round(i/n*100,2))
-    s.satis_yap()
+    s.satis_yap()'''
