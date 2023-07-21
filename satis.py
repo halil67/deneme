@@ -125,9 +125,10 @@ class Random_satis:
         with open("satis.csv","a",encoding="utf-8") as fl:
             strg=f"{r_firma_id};{r_musteri_id};{cart.id};{urn_say};{top_fiyat};{tarih}\n"
             fl.write(strg)
-'''
+
 s=Random_satis()
 n=1000
 for i in range(1,n):
-    print(round(i/n*100,2))
-    s.satis_yap()'''
+    oran=round(i/n*100,2)
+    print(f"Progress: {oran}%\r", end="")
+    s.satis_yap()
