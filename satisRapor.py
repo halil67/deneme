@@ -5,6 +5,7 @@ import urun as urn
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 class Satis_Rapor:
     def liste_yukle(self):
@@ -130,3 +131,43 @@ class Satis_Rapor:
                 self.musteri_listesi()
             elif cvp=="5":
                 break 
+
+
+    def satis_say_urun(self):
+        if not self.satislar:self.satis_oku()
+        dosya="shopDetail.csv"
+        if os.path.exists(dosya):
+            veri=[]
+            with open(dosya,"r",encoding="utf-8") as fl:
+                for satir in fl:
+                    satir=satir.strip()
+                    if satir:
+                        id,k_id,u_id,u_adi,u_fiyat=satir.split(";")
+                        f_kodu,firmaAdi,m_kodu,mstAdi,mstCns,mstYasi=next(((s[0],s[1],s[2],s[3],s[4],s[5]) for s in self.satislar if id==s[6]),None)
+                        veri.append([id,f_kodu,firmaAdi,m_kodu,mstAdi,mstCns,mstYasi,u_id,u_adi,float(u_fiyat)])
+            sutunlar=["id","f_kodu","firmaAdi","m_kodu","mstAdi","mstCns","mstYasi","u_id","u_adi","u_fiyat"]
+            df=pd.DataFrame(veri,columns=sutunlar)
+            
+            product_counts = df.groupby('u_adi')['u_id'].count().reset_index()
+            product_price = df.groupby('u_adi')['u_fiyat'].sum().reset_index()
+            product_info = pd.merge(product_counts, product_price, on='u_adi', suffixes=('_count', '_price'))
+
+            firma_counts=df.groupby("firmaAdi")["f_kodu"].count().reset_index()
+            firma_price=df.groupby("firmaAdi")["u_fiyat"].sum().reset_index()
+            firma_info=pd.merge(firma_counts,firma_price, on="firmaAdi", suffixes=("_count","_price"))
+            print(product_info,"\n",firma_info)
+            
+            musteri_count=df.groupby("mstAdi")["m_kodu"].count().reset_index()
+            musteri_price=df.groupby("mstAdi")["u_fiyat"].sum().reset_index()
+            musteri_info=pd.merge(musteri_count,musteri_price,on="mstAdi",suffixes=("c","p"))
+            print(musteri_info)
+            
+            gender_count=df.groupby("mstCns")["mstCns"].count().reset_index()
+            gender_price=df.groupby("mstCns")["u_fiyat"].sum().reset_index()
+            gender_info=pd.merge(gender_count,gender_price, on="mstCns",suffixes=("c","p"))
+import time
+bas=time.time()          
+s=Satis_Rapor()
+s.satis_say_urun()
+bit=time.time()
+print(bit-bas)
