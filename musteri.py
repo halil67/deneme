@@ -1,5 +1,6 @@
 import random
 import datetime
+import os
 class Musteri:
     musteriler=[]   
     def __init__(self,musteri_kodu,musteri_adi,musteri_soyadi,musteri_cinsiyet,musteri_yas,musteri_Puan,kayit_tarihi):
@@ -16,13 +17,14 @@ class Musteri_islemleri:
     def musteri_oku(self):
         Musteri.musteriler.clear
         dosya_adi="musteri.csv"
-        with open(dosya_adi,"r",encoding="utf-8") as fl:
-            for satir in fl:
-                satir=satir.strip()
-                if satir:
-                    musteri_kodu, musteri_Adi,musteri_soyadi,musteri_cinsiyet,musteri_yas, musteri_Puan,kayit_tarihi  =satir.split(";")
-                    musteri=Musteri(musteri_kodu, musteri_Adi,musteri_soyadi,musteri_cinsiyet,musteri_yas, musteri_Puan,kayit_tarihi)
-                    Musteri.musteriler.append(musteri)
+        if os.path.exists(dosya_adi):
+            with open(dosya_adi,"r",encoding="utf-8") as fl:
+                for satir in fl:
+                    satir=satir.strip()
+                    if satir:
+                        musteri_kodu, musteri_Adi,musteri_soyadi,musteri_cinsiyet,musteri_yas, musteri_Puan,kayit_tarihi  =satir.split(";")
+                        musteri=Musteri(musteri_kodu, musteri_Adi,musteri_soyadi,musteri_cinsiyet,musteri_yas, musteri_Puan,kayit_tarihi)
+                        Musteri.musteriler.append(musteri)
                     
     def musteri_kaydet(self):
         dosya_adi="musteri.csv"
