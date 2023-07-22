@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-
+import locale
 class Satis_Rapor:
     def liste_yukle(self):
         if not fr.Firma.firmalar:fr.Firma_islemleri().firma_oku()
@@ -17,17 +17,19 @@ class Satis_Rapor:
     satislar=[]
     def satis_oku(self):
         self.liste_yukle()
-        with open("satis.csv","r",encoding="utf-8") as fl:
-            for satir in fl:
-                satir=satir.strip()
-                if satir:
-                    r_firma_id,r_musteri_id,cart_id,urn_say,top_fiyat,tarih=satir.split(";")
-                    firmaAdi = next((frm.firmaAdi for frm in fr.Firma.firmalar if int(frm.id) == int(r_firma_id)), None)
-                    mstAdi,mstCns,mstYasi=next(((ms.musteri_adi+ " "+ ms.musteri_soyadi,ms.musteri_cinsiyet,ms.musteri_yas) for ms in mst.Musteri.musteriler if ms.musteri_kodu == r_musteri_id), None)
-                    self.satislar.append([int(r_firma_id), firmaAdi,int(r_musteri_id), mstAdi, mstCns, mstYasi, cart_id, int(urn_say), float(top_fiyat), tarih])
-            sutunlar = ["firma_kodu", "FirmaAdi", "MusteriKodu", "MusteriAdiSoyadi", "MusteriCns", "MusretiYas", "Satis_id", "UrunAdet", "tutar", "tarih"]
-            self.dfSatis = pd.DataFrame(self.satislar, columns=sutunlar)
-    
+        dosya="satis.csv"
+        if os.path.exists(dosya):
+            with open(dosya,"r",encoding="utf-8") as fl:
+                for satir in fl:
+                    satir=satir.strip()
+                    if satir:
+                        r_firma_id,r_musteri_id,cart_id,urn_say,top_fiyat,tarih=satir.split(";")
+                        firmaAdi = next((frm.firmaAdi for frm in fr.Firma.firmalar if int(frm.id) == int(r_firma_id)), None)
+                        mstAdi,mstCns,mstYasi=next(((ms.musteri_adi+ " "+ ms.musteri_soyadi,ms.musteri_cinsiyet,ms.musteri_yas) for ms in mst.Musteri.musteriler if ms.musteri_kodu == r_musteri_id), None)
+                        self.satislar.append([int(r_firma_id), firmaAdi,int(r_musteri_id), mstAdi, mstCns, mstYasi, cart_id, int(urn_say), float(top_fiyat), tarih])
+                sutunlar = ["firma_kodu", "FirmaAdi", "MusteriKodu", "MusteriAdiSoyadi", "MusteriCns", "MusretiYas", "Satis_id", "UrunAdet", "tutar", "tarih"]
+                self.dfSatis = pd.DataFrame(self.satislar, columns=sutunlar)
+        
         
     def firma_satis_toplam(self,firma_id):
         firma_kodu_df = self.dfSatis[self.dfSatis["firma_kodu"] == int(firma_id)]
@@ -160,38 +162,81 @@ class Satis_Rapor:
                         id,k_id,u_id,u_adi,u_fiyat=satir.split(";")
                         f_kodu,firmaAdi,m_kodu,mstAdi,mstCns,mstYasi=next(((s[0],s[1],s[2],s[3],s[4],s[5]) for s in self.satislar if id==s[6]),None)
                         veri.append([id,f_kodu,firmaAdi,m_kodu,mstAdi,mstCns,mstYasi,u_id,u_adi,float(u_fiyat)])
+            
             sutunlar=["id","f_kodu","firmaAdi","m_kodu","mstAdi","mstCns","mstYasi","u_id","u_adi","u_fiyat"]
             self.df=pd.DataFrame(veri,columns=sutunlar)
-    
+            self.toplam_tutar=self.df["u_fiyat"].sum()
+            self.toplam_sayi=self.df["u_fiyat"].count()
+            
+    def format_currency(self, amount):
+        return locale.currency(amount, grouping=True)
+        #f'{amount:.2f} ₺'
     def satis_say_urun(self):
         self.satis_detay()
         product_counts = self.df.groupby('u_adi')['u_id'].count().reset_index()
+        product_counts["oranC"]=product_counts["u_id"]/self.toplam_sayi*100
         product_price =  self.df.groupby('u_adi')['u_fiyat'].sum().reset_index()
+        product_price["oranP"]=product_price["u_fiyat"]/self.toplam_tutar*100
         product_info = pd.merge(product_counts, product_price, on='u_adi', suffixes=('_count', '_price'))
+        product_info["oranC"] = product_info["oranC"].round(2)
+        product_info["oranP"] = product_info["oranP"].round(2)
+        product_info["u_fiyat"] = product_info["u_fiyat"].apply(self.format_currency)
+        
+        new_column_order = ['u_adi', 'u_id','oranC' ,'u_fiyat', 'oranP']
+        product_info = product_info[new_column_order]
+        new_column_names = {'u_adi': 'Ürün Adı','u_id': 'Ürün Adedi','oranC': 'Adet Oranı',
+                            'u_fiyat': 'Toplam Satış','oranP': 'Satış Oranı'}
+        product_info.rename(columns=new_column_names, inplace=True)
+
         print(product_info)
+        
     def firma_say_urun(self):
         self.satis_detay()
         firma_counts=self.df.groupby("firmaAdi")["f_kodu"].count().reset_index()
         firma_price=self.df.groupby("firmaAdi")["u_fiyat"].sum().reset_index()
         firma_info=pd.merge(firma_counts,firma_price, on="firmaAdi", suffixes=("_count","_price"))
         print(firma_info)
+        
     def musteri_say_urun(self):
         self.satis_detay()
         musteri_count=self.df.groupby("mstAdi")["m_kodu"].count().reset_index()
         musteri_price=self.df.groupby("mstAdi")["u_fiyat"].sum().reset_index()
         musteri_info=pd.merge(musteri_count,musteri_price,on="mstAdi",suffixes=("c","p"))
         print(musteri_info)
+        
     def gender_say_urun(self):
+        
         self.satis_detay()
         gender_count=self.df.groupby("mstCns")["u_fiyat"].count().reset_index()
         gender_price=self.df.groupby("mstCns")["u_fiyat"].sum().reset_index()
         gender_info=pd.merge(gender_count,gender_price, on="mstCns",suffixes=("_c","_p"))
         print(gender_info)
+        plt.figure(figsize=(10, 6))
+        plt.subplot(1, 2, 1)  # 1 satırlık, 2 sütunlu grid içinde ilk alt grafik (bar grafiği)
+        plt.bar(gender_info['mstCns'], gender_info['u_fiyat_c'])
+        plt.xlabel('Ürün Adı')
+        plt.ylabel('Ürün Adedi')
+        plt.title('Ürün Adedi')
+        plt.xticks(rotation=45)
+
+        # Pie Grafiği
+        plt.subplot(1, 2, 2)  # 1 satırlık, 2 sütunlu grid içinde ikinci alt grafik (pie grafiği)
+        plt.bar(gender_info['mstCns'], gender_info['u_fiyat_p'])
+        plt.xlabel('Ürün Adı')
+        plt.ylabel('Ürün Adedi')
+        plt.title('Ürün Adedi')
+        plt.xticks(rotation=45)
+
+        plt.tight_layout()  # Alt grafikler arasındaki boşlukları düzenlemek için
+        plt.show()
+        
     def old_say_urun(self):  
         self.satis_detay()
         old_count=self.df.groupby("mstYasi")["u_fiyat"].count().reset_index()
         old_price=self.df.groupby("mstYasi")["u_fiyat"].sum().reset_index()
         old_info=pd.merge(old_count,old_price, on="mstYasi",suffixes=("_c","_p"))
         print(old_info)
-s=Satis_Rapor()
+        
+"""s=Satis_Rapor()
 s.menu()
+"""
