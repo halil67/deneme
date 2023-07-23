@@ -169,8 +169,7 @@ class Satis_Rapor:
             self.toplam_sayi=self.df["u_fiyat"].count()
             
     def format_currency(self, amount):
-        return locale.currency(amount, grouping=True)
-        #f'{amount:.2f} ₺'
+        return f'{amount:.2f} ₺'
     def satis_say_urun(self):
         self.satis_detay()
         product_counts = self.df.groupby('u_adi')['u_id'].count().reset_index()
@@ -192,17 +191,31 @@ class Satis_Rapor:
         
     def firma_say_urun(self):
         self.satis_detay()
-        firma_counts=self.df.groupby("firmaAdi")["f_kodu"].count().reset_index()
-        firma_price=self.df.groupby("firmaAdi")["u_fiyat"].sum().reset_index()
-        firma_info=pd.merge(firma_counts,firma_price, on="firmaAdi", suffixes=("_count","_price"))
-        print(firma_info)
         
+        firma_counts=self.df.groupby("firmaAdi")["f_kodu"].count().reset_index()
+        firma_counts["oranC"]=round(firma_counts["f_kodu"]/self.toplam_sayi*100,2)
+        firma_price=self.df.groupby("firmaAdi")["u_fiyat"].sum().reset_index()
+        firma_price["oranP"]=round(firma_price["u_fiyat"]/self.toplam_tutar*100,2)
+        firma_info=pd.merge(firma_counts,firma_price, on="firmaAdi", suffixes=("_count","_price"))
+        firma_info["u_fiyat"] = firma_info["u_fiyat"].apply(self.format_currency)
+        names={"firmaAdi":"Firma Adı","f_kodu":"Satıs Adet","oranC":"Adet Oranı%","u_fiyat":"Toplam Satış","oranP":"Satış Oranı"}
+        firma_info.rename(columns=names,inplace=True)
+        print(firma_info)
+        print(f"Toplam Adet:{self.toplam_sayi}")
+        print(f"Toplam Satış:{self.toplam_tutar}")
     def musteri_say_urun(self):
         self.satis_detay()
         musteri_count=self.df.groupby("mstAdi")["m_kodu"].count().reset_index()
+        musteri_count["oranC"]=round(musteri_count["m_kodu"]/self.toplam_sayi*100,2)
         musteri_price=self.df.groupby("mstAdi")["u_fiyat"].sum().reset_index()
+        musteri_price["oranP"]=round(musteri_price["u_fiyat"]/self.toplam_tutar*100,2)
         musteri_info=pd.merge(musteri_count,musteri_price,on="mstAdi",suffixes=("c","p"))
+        musteri_info["u_fiyat"]=musteri_info["u_fiyat"].apply(self.format_currency)
+        names={"mstAdi":"Müşter Ad Soyad","m_kodu":"Ürün Adet","oranC":"Adet Oranı%","u_fiyat":"Toplam Satınalma","oranP":"Satınalma Oranı"}
+        musteri_info.rename(columns=names,inplace=True)
         print(musteri_info)
+        print(f"Toplam Adet:{self.toplam_sayi}")
+        print(f"Toplam Satış:{self.toplam_tutar}")
         
     def gender_say_urun(self):
         
@@ -211,8 +224,8 @@ class Satis_Rapor:
         gender_price=self.df.groupby("mstCns")["u_fiyat"].sum().reset_index()
         gender_info=pd.merge(gender_count,gender_price, on="mstCns",suffixes=("_c","_p"))
         print(gender_info)
-        plt.figure(figsize=(10, 6))
-        plt.subplot(1, 2, 1)  # 1 satırlık, 2 sütunlu grid içinde ilk alt grafik (bar grafiği)
+        plt.figure(figsize=(20, 20))
+        plt.subplot(2, 2, 1)  # 1 satırlık, 2 sütunlu grid içinde ilk alt grafik (bar grafiği)
         plt.bar(gender_info['mstCns'], gender_info['u_fiyat_c'])
         plt.xlabel('Ürün Adı')
         plt.ylabel('Ürün Adedi')
@@ -223,8 +236,8 @@ class Satis_Rapor:
         plt.subplot(1, 2, 2)  # 1 satırlık, 2 sütunlu grid içinde ikinci alt grafik (pie grafiği)
         plt.bar(gender_info['mstCns'], gender_info['u_fiyat_p'])
         plt.xlabel('Ürün Adı')
-        plt.ylabel('Ürün Adedi')
-        plt.title('Ürün Adedi')
+        plt.ylabel('Toplam Satış')
+        plt.title('Toplam Satış')
         plt.xticks(rotation=45)
 
         plt.tight_layout()  # Alt grafikler arasındaki boşlukları düzenlemek için
@@ -237,6 +250,6 @@ class Satis_Rapor:
         old_info=pd.merge(old_count,old_price, on="mstYasi",suffixes=("_c","_p"))
         print(old_info)
         
-"""s=Satis_Rapor()
+
+s=Satis_Rapor()
 s.menu()
-"""
